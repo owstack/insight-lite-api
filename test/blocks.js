@@ -3,7 +3,7 @@
 var should = require('should');
 var sinon = require('sinon');
 var BlockController = require('../lib/blocks');
-var bitcore = require('litecore-lib');
+var btcLib = require('@owstack/ltc-lib');
 var _ = require('lodash');
 
 var blocks = require('./data/blocks.json');
@@ -64,16 +64,16 @@ describe('Blocks', function() {
       'chainwork': '0000000000000000000000000000000000000000000000054626b1839ade284a',
       'previousblockhash': '00000000000001a55f3214e9172eb34b20e0bc5bd6b8007f3f149fca2c8991a4',
       'nextblockhash': '000000000001e866a8057cde0c650796cb8a59e0e6038dc31c69d7ca6649627d',
-      'reward': 12.5,
+      'reward': 50,
       'isMainChain': true,
       'poolInfo': {}
     };
 
-    var bitcoreBlock = bitcore.Block.fromBuffer(new Buffer(blocks['0000000000000afa0c3c0afd450c793a1e300ec84cbe9555166e06132f19a8f7'], 'hex'));
+    var btcBlock = btcLib.Block.fromBuffer(new Buffer(blocks['0000000000000afa0c3c0afd450c793a1e300ec84cbe9555166e06132f19a8f7'], 'hex'));
 
     var node = {
       log: sinon.stub(),
-      getBlock: sinon.stub().callsArgWith(1, null, bitcoreBlock),
+      getBlock: sinon.stub().callsArgWith(1, null, btcBlock),
       services: {
         bitcoind: {
           getBlockHeader: sinon.stub().callsArgWith(1, null, blockIndexes['0000000000000afa0c3c0afd450c793a1e300ec84cbe9555166e06132f19a8f7']),
@@ -102,7 +102,7 @@ describe('Blocks', function() {
     });
 
     it('block pool info should be correct', function(done) {
-      var block = bitcore.Block.fromString(blocks['000000000000000004a118407a4e3556ae2d5e882017e7ce526659d8073f13a4']);
+      var block = btcLib.Block.fromString(blocks['000000000000000004a118407a4e3556ae2d5e882017e7ce526659d8073f13a4']);
       var node = {
         log: sinon.stub(),
         getBlock: sinon.stub().callsArgWith(1, null, block),
@@ -260,15 +260,15 @@ describe('Blocks', function() {
     var blocks = new BlockController({node: node});
 
     it('should give a block reward of 50 * 1e8 for block before first halvening', function() {
-      blocks.getBlockReward(100000).should.equal(50 * 1e8);
+      blocks.getBlockReward(100000 * 4).should.equal(50 * 1e8);
     });
 
     it('should give a block reward of 25 * 1e8 for block between first and second halvenings', function() {
-      blocks.getBlockReward(373011).should.equal(25 * 1e8);
+      blocks.getBlockReward(373011 * 4).should.equal(25 * 1e8);
     });
 
     it('should give a block reward of 12.5 * 1e8 for block between second and third halvenings', function() {
-      blocks.getBlockReward(500000).should.equal(12.5 * 1e8);
+      blocks.getBlockReward(500000 * 4).should.equal(12.5 * 1e8);
     });
   });
 });

@@ -1,14 +1,14 @@
 'use strict';
 var should = require('should');
 var sinon = require('sinon');
-var bitcore = require('litecore-lib');
+var ltcLib = require('@owstack/ltc-lib');
 var TxController = require('../lib/transactions');
 var _ = require('lodash');
 
 describe('Transactions', function() {
   describe('/tx/:txid', function() {
     it('should have correct data', function(done) {
-      var insight = {
+      var explorer = {
         'txid': 'b85334bf2df35c6dd5b294efe92ffc793a78edff75a2ca666fc296ffb04bbba0',
         'version': 1,
         'locktime': 0,
@@ -194,7 +194,7 @@ describe('Transactions', function() {
       var res = {};
       var next = function() {
         var merged = _.merge(req.transaction, todos);
-        should(merged).eql(insight);
+        should(merged).eql(explorer);
         done();
       };
 
@@ -366,7 +366,7 @@ describe('Transactions', function() {
 
       var transactions = new TxController(node);
 
-      var insight = {
+      var explorer = {
         'pagesTotal': 1,
         'txs': [
           {
@@ -627,7 +627,7 @@ describe('Transactions', function() {
       var res = {
         jsonp: function(data) {
           _.merge(data, todos);
-          should(data).eql(insight);
+          should(data).eql(explorer);
           done();
         }
       };
@@ -747,7 +747,7 @@ describe('Transactions', function() {
         network: 'testnet'
       };
 
-      var insight = {
+      var explorer = {
         'pagesTotal': 1,
         'txs': [
           {
@@ -933,7 +933,7 @@ describe('Transactions', function() {
       var res = {
         jsonp: function(data) {
           var merged = _.merge(data, todos);
-          should(merged).eql(insight);
+          should(merged).eql(explorer);
           done();
         }
       };
@@ -948,7 +948,7 @@ describe('Transactions', function() {
       var hex = '01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff2303d6250800feb0aae355fe263600000963676d696e6572343208ae5800000000000000ffffffff01c018824a000000001976a91468bedce8982d25c3b6b03f6238cbad00378b8ead88ac00000000';
 
       var node = {
-        getTransaction: sinon.stub().callsArgWith(1, null, bitcore.Transaction().fromBuffer(new Buffer(hex, 'hex')))
+        getTransaction: sinon.stub().callsArgWith(1, null, ltcLib.Transaction().fromBuffer(new Buffer(hex, 'hex')))
       };
 
       var transactions = new TxController(node);
@@ -970,7 +970,7 @@ describe('Transactions', function() {
 
   describe('#transformInvTransaction', function() {
     it('should give the correct data', function() {
-      var insight = {
+      var explorer = {
         'txid': 'a15a7c257af596704390d345ff3ea2eed4cd02ce8bfb8afb700bff82257e49fb',
         'valueOut': 0.02038504,
         'vout': [
@@ -978,26 +978,26 @@ describe('Transactions', function() {
             '3DQYCLG6rZdtV2Xw8y4YtozZjNHYoKsLuo': 45000
           },
           {
-            '12WvZmssxT85f81dD6wcmWznxbnFkEpNMS': 1993504
+            'LLjspzBi37N8uvhnPEvv3Y4ZAp9Xx2gghb': 1993504
           }
         ],
         'isRBF': false
       };
 
       var rawTx = '01000000011760bc271a397bfb65b7506d430d96ebb1faff467ed957516238a9670e806a86010000006b483045022100f0056ae68a34cdb4194d424bd727c18f82653bca2a198e0d55ab6b4ee88bbdb902202a5745af4f72a5dbdca1e3d683af4667728a8b20e8001e0f8308a4d329ce3f96012102f3af6e66b61c9d99c74d9a9c3c1bec014a8c05d28bf339c8f5f395b5ce319e7dffffffff02c8af00000000000017a9148083b541ea15f1d18c5ca5e1fd47f9035cce24ed87206b1e00000000001976a91410a0e70cd91a45e0e6e409e227ab285bd61592b188ac00000000';
-      var tx = bitcore.Transaction().fromBuffer(new Buffer(rawTx, 'hex'));
+      var tx = ltcLib.Transaction().fromBuffer(new Buffer(rawTx, 'hex'));
 
       var node = {
-        network: bitcore.Networks.livenet
+        network: ltcLib.Networks.livenet
       };
 
       var transactions = new TxController(node);
 
       var result = transactions.transformInvTransaction(tx);
-      should(result).eql(insight);
+      should(result).eql(explorer);
     });
     it('will not include null values in vout array', function() {
-      var insight = {
+      var explorer = {
         'txid': '716d54157c31e52c820494c6c2b8af1b64352049f4dcc80632aa15742a7f82c4',
         'valueOut': 12.5002,
         'vout': [
@@ -1009,16 +1009,16 @@ describe('Transactions', function() {
       };
 
       var rawTx = '01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0403ebc108ffffffff04a0ca814a000000001976a914fdb9fb622b0db8d9121475a983288a0876f4de4888ac0000000000000000226a200000000000000000000000000000000000000000000000000000ffff0000000000000000000000001b6a1976a914fdb9fb622b0db8d9121475a983288a0876f4de4888ac0000000000000000326a303a791c8e85200500d89769b4f958e4db6b3ec388ddaa30233c4517d942d440c24ae903bff40d97ca06465fcf2714000000000000';
-      var tx = bitcore.Transaction().fromBuffer(new Buffer(rawTx, 'hex'));
+      var tx = ltcLib.Transaction().fromBuffer(new Buffer(rawTx, 'hex'));
 
       var node = {
-        network: bitcore.Networks.testnet
+        network: ltcLib.Networks.testnet
       };
 
       var transactions = new TxController(node);
 
       var result = transactions.transformInvTransaction(tx);
-      should(result).eql(insight);
+      should(result).eql(explorer);
     });
     it('should detect RBF txs', function() {
       var testCases = [
@@ -1032,13 +1032,13 @@ describe('Transactions', function() {
       ];
 
       var node = {
-        network: bitcore.Networks.livenet
+        network: ltcLib.Networks.livenet
       };
 
       var transactions = new TxController(node);
 
       _.each(testCases, function(tc) {
-        var tx = bitcore.Transaction().fromBuffer(new Buffer(tc.rawTx, 'hex'));
+        var tx = ltcLib.Transaction().fromBuffer(new Buffer(tc.rawTx, 'hex'));
         var result = transactions.transformInvTransaction(tx);
         should.exist(result.isRBF);
         result.isRBF.should.equal(tc.expected);

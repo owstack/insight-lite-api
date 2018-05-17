@@ -5,23 +5,23 @@ var bodyParser = require('body-parser');
 var compression = require('compression');
 var BaseService = require('./service');
 var inherits = require('util').inherits;
-var BlockController = require('./blocks');
-var TxController = require('./transactions');
-var AddressController = require('./addresses');
-var StatusController = require('./status');
-var MessagesController = require('./messages');
-var UtilsController = require('./utils');
-var CurrencyController = require('./currency');
-var RateLimiter = require('./ratelimiter');
+var BlockController = require('../lib/blocks');
+var TxController = require('../lib/transactions');
+var AddressController = require('../lib/addresses');
+var StatusController = require('../lib/status');
+var MessagesController = require('../lib/messages');
+var UtilsController = require('../lib/utils');
+var CurrencyController = require('../lib/currency');
+var RateLimiter = require('../lib/ratelimiter');
 var morgan = require('morgan');
-var bitcore = require('litecore-lib');
-var _ = bitcore.deps._;
-var $ = bitcore.util.preconditions;
-var Transaction = bitcore.Transaction;
+var btcLib = require('@owstack/ltc-lib');
+var _ = btcLib.deps._;
+var $ = btcLib.util.preconditions;
+var Transaction = btcLib.Transaction;
 var EventEmitter = require('events').EventEmitter;
 
 /**
- * A service for Bitcore to enable HTTP routes to query information about the blockchain.
+ * A service to enable HTTP routes to query information about the blockchain.
  *
  * @param {Object} options
  * @param {Boolean} options.enableCache - This will enable cache-control headers
@@ -29,7 +29,7 @@ var EventEmitter = require('events').EventEmitter;
  * @param {Number} options.cacheLongSeconds - The time to cache long lived cache responses.
  * @param {String} options.routePrefix - The URL route prefix
  */
-var InsightAPI = function(options) {
+var ExplorerAPI = function(options) {
   BaseService.call(this, options);
 
   // in minutes
@@ -61,11 +61,11 @@ var InsightAPI = function(options) {
   this.txController = new TxController(this.node);
 };
 
-InsightAPI.dependencies = ['bitcoind', 'web'];
+ExplorerAPI.dependencies = ['bitcoind', 'web'];
 
-inherits(InsightAPI, BaseService);
+inherits(ExplorerAPI, BaseService);
 
-InsightAPI.prototype.cache = function(maxAge) {
+ExplorerAPI.prototype.cache = function(maxAge) {
   var self = this;
   return function(req, res, next) {
     if (self.enableCache) {
@@ -75,27 +75,27 @@ InsightAPI.prototype.cache = function(maxAge) {
   };
 };
 
-InsightAPI.prototype.cacheShort = function() {
+ExplorerAPI.prototype.cacheShort = function() {
   var seconds = this.cacheShortSeconds || 30; // thirty seconds
   return this.cache(seconds);
 };
 
-InsightAPI.prototype.cacheLong = function() {
+ExplorerAPI.prototype.cacheLong = function() {
   var seconds = this.cacheLongSeconds || 86400; // one day
   return this.cache(seconds);
 };
 
-InsightAPI.prototype.getRoutePrefix = function() {
+ExplorerAPI.prototype.getRoutePrefix = function() {
   return this.routePrefix;
 };
 
-InsightAPI.prototype.start = function(callback) {
+ExplorerAPI.prototype.start = function(callback) {
   this.node.services.bitcoind.on('tx', this.transactionEventHandler.bind(this));
   this.node.services.bitcoind.on('block', this.blockEventHandler.bind(this));
   setImmediate(callback);
 };
 
-InsightAPI.prototype.createLogInfoStream = function() {
+ExplorerAPI.prototype.createLogInfoStream = function() {
   var self = this;
 
   function Log(options) {
@@ -112,21 +112,21 @@ InsightAPI.prototype.createLogInfoStream = function() {
   return stream;
 };
 
-InsightAPI.prototype.getRemoteAddress = function(req) {
+ExplorerAPI.prototype.getRemoteAddress = function(req) {
   if (req.headers['cf-connecting-ip']) {
     return req.headers['cf-connecting-ip'];
   }
   return req.socket.remoteAddress;
 };
 
-InsightAPI.prototype._getRateLimiter = function() {
+ExplorerAPI.prototype._getRateLimiter = function() {
   var rateLimiterOptions = _.isUndefined(this.rateLimiterOptions) ? {} : _.clone(this.rateLimiterOptions);
   rateLimiterOptions.node = this.node;
   var limiter = new RateLimiter(rateLimiterOptions);
   return limiter;
 };
 
-InsightAPI.prototype.setupRoutes = function(app) {
+ExplorerAPI.prototype.setupRoutes = function(app) {
 
   var self = this;
 
@@ -245,7 +245,7 @@ InsightAPI.prototype.setupRoutes = function(app) {
 
 };
 
-InsightAPI.prototype.getPublishEvents = function() {
+ExplorerAPI.prototype.getPublishEvents = function() {
   return [
     {
       name: 'inv',
@@ -257,13 +257,13 @@ InsightAPI.prototype.getPublishEvents = function() {
   ];
 };
 
-InsightAPI.prototype.blockEventHandler = function(hashBuffer) {
+ExplorerAPI.prototype.blockEventHandler = function(hashBuffer) {
   // Notify inv subscribers
   for (var i = 0; i < this.subscriptions.inv.length; i++) {
     this.subscriptions.inv[i].emit('block', hashBuffer.toString('hex'));
   }
 };
-InsightAPI.prototype.transactionEventHandler = function(txBuffer) {
+ExplorerAPI.prototype.transactionEventHandler = function(txBuffer) {
   var tx = new Transaction().fromBuffer(txBuffer);
   var result = this.txController.transformInvTransaction(tx);
 
@@ -272,7 +272,7 @@ InsightAPI.prototype.transactionEventHandler = function(txBuffer) {
   }
 };
 
-InsightAPI.prototype.subscribe = function(emitter) {
+ExplorerAPI.prototype.subscribe = function(emitter) {
   $.checkArgument(emitter instanceof EventEmitter, 'First argument is expected to be an EventEmitter');
 
   var emitters = this.subscriptions.inv;
@@ -282,7 +282,7 @@ InsightAPI.prototype.subscribe = function(emitter) {
   }
 };
 
-InsightAPI.prototype.unsubscribe = function(emitter) {
+ExplorerAPI.prototype.unsubscribe = function(emitter) {
   $.checkArgument(emitter instanceof EventEmitter, 'First argument is expected to be an EventEmitter');
 
   var emitters = this.subscriptions.inv;
@@ -292,4 +292,4 @@ InsightAPI.prototype.unsubscribe = function(emitter) {
   }
 };
 
-module.exports = InsightAPI;
+module.exports = ExplorerAPI;

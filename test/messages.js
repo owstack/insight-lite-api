@@ -3,15 +3,15 @@
 var should = require('should');
 var sinon = require('sinon');
 var MessagesController = require('../lib/messages');
-var bitcore = require('litecore-lib');
+var ltcLib = require('@owstack/ltc-lib');
 var _ = require('lodash');
 
 describe('Messages', function() {
 
-  var privateKey = bitcore.PrivateKey.fromWIF('cQwApHAg8hw9AZuxiU4a7g9kFWdaemhPxVZXWiAKgJTx6dPP32fN');
-  var address = 'mswTKCE2tYSFvUNnNPBKZfeNmugYL1rZMx';
-  var badAddress = 'mswTKCE2tYSFvUNnNPBKZfeNmuhYL1rZMm';
-  var signature = 'IA4sIwhcLMPPsYtB8tN0PI+aQuwDyl+/4Ksa89llNSAeVaRdMyyIxpo1H5N3GHbPl9LQqZ7CvaokeQgsOkK9fn4=';
+  var privateKey = ltcLib.PrivateKey.fromWIF('cQwApHAg8hw9AZuxiU4a7g9kFWdaemhPxVZXWiAKgJTx6dPP32fN');
+  var address = 'LXeTHMStABF4QAbKpxCF1mVp88T7WEnMDV';
+  var badAddress = 'LXeTHMStABF4QAbKpxCF1mVp88T7WEnMDm';
+  var signature = 'H9zj64aWhillxM4oI4T+KLeTUOcne8vIljoz1wTkP7eHWIJrk/TeYU9Xp3PTNdDoFbCIFeUFd+Pj1WVIKfxbgJE=';
   var message = 'cellar door';
 
   it('will verify a message (true)', function(done) {

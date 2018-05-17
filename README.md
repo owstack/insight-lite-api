@@ -1,139 +1,68 @@
-# Insight API
+Ltc Explorer API
+======
 
-A Litecoin blockchain REST and web socket API service for [Litecore Node](https://github.com/litecoin-project/litecore-node).
+[![NPM Package](https://img.shields.io/npm/v/ltc-explorer-api.svg?style=flat-square)](https://www.npmjs.org/package/ltc-explorer-api)
+[![Build Status](https://img.shields.io/travis/owstack/ltc-explorer-api.svg?branch=master&style=flat-square)](https://travis-ci.org/owstack/ltc-explorer-api)
+[![Coverage Status](https://img.shields.io/coveralls/owstack/ltc-explorer-api.svg?style=flat-square)](https://coveralls.io/r/owstack/ltc-explorer-api)
 
-This is a backend-only service. If you're looking for the web frontend application, take a look at https://github.com/litecoin-project/insight-lite-ui.
+A Bitcoin blockchain REST and web socket API service for [Ltc Node](https://github.com/owstack/ltc-node).
+
+This is a backend-only service. If you're looking for the web frontend application, take a look at https://github.com/owstack/ows-explorer.
 
 ## Getting Started
 
 ```bashl
-npm install -g litecore-node@latest
-litecore-node create mynode
+npm install -g ltc-node@latest
+ltc-node create mynode
 cd mynode
-litecore-node install insight-lite-api
-litecore-node start
+ltc-node install ltc-explorer-api
+ltc-node start
 ```
 
-The API endpoints will be available by default at: `http://localhost:3001/insight-lite-api/`
+The API endpoints will be available by default at: `http://localhost:3001/ltc-explorer-api/`
 
 ## Prerequisites
 
-- [Litecore Node 3.x](https://github.com/litecoin-project/litecore-node)
+- [Ltc Node](https://github.com/owstack/ltc-node)
 
-**Note:** You can use an existing Litecoin data directory, however `txindex`, `addressindex`, `timestampindex` and `spentindex` needs to be set to true in `bitcoin.conf`, as well as a few other additional fields.
-
-## Notes on Upgrading from v0.3
-
-The unspent outputs format now has `satoshis` and `height`:
-```
-[
-  {
-    "address":"mo9ncXisMeAoXwqcV5EWuyncbmCcQN4rVs",
-    "txid":"d5f8a96faccf79d4c087fa217627bb1120e83f8ea1a7d84b1de4277ead9bbac1",
-    "vout":0,
-    "scriptPubKey":"76a91453c0307d6851aa0ce7825ba883c6bd9ad242b48688ac",
-    "amount":0.000006,
-    "satoshis":600,
-    "confirmations":0,
-    "ts":1461349425
-  },
-  {
-    "address": "mo9ncXisMeAoXwqcV5EWuyncbmCcQN4rVs",
-    "txid": "bc9df3b92120feaee4edc80963d8ed59d6a78ea0defef3ec3cb374f2015bfc6e",
-    "vout": 1,
-    "scriptPubKey": "76a91453c0307d6851aa0ce7825ba883c6bd9ad242b48688ac",
-    "amount": 0.12345678,
-    "satoshis: 12345678,
-    "confirmations": 1,
-    "height": 300001
-  }
-]
-```
-The `timestamp` property will only be set for unconfirmed transactions and `height` can be used for determining block order. The `confirmationsFromCache` is nolonger set or necessary, confirmation count is only cached for the time between blocks.
-
-There is a new `GET` endpoint or raw blocks at `/rawblock/<blockHash>`:
-
-Response format:
-```
-{
-  "rawblock": "blockhexstring..."
-}
-```
-
-There are a few changes to the `GET` endpoint for `/addr/[:address]`:
-
-- The list of txids in an address summary does not include orphaned transactions
-- The txids will be sorted in block order
-- The list of txids will be limited at 1000 txids
-- There are two new query options "from" and "to" for pagination of the txids (e.g. `/addr/[:address]?from=1000&to=2000`)
-
-Some additional general notes:
-- The transaction history for an address will be sorted in block order
-- The response for the `/sync` endpoint does not include `startTs` and `endTs` as the sync is no longer relevant as indexes are built in bitcoind.
-- The endpoint for `/peer` is no longer relevant connection to bitcoind is via ZMQ.
-- `/tx` endpoint results will now include block height, and spentTx related fields will be set to `null` if unspent.
-- `/block` endpoint results does not include `confirmations` and will include `poolInfo`.
-
-## Notes on Upgrading from v0.2
-
-Some of the fields and methods are not supported:
-
-The `/tx/<txid>` endpoint JSON response will not include the following fields on the "vin"
-object:
-- `doubleSpentTxId` // double spends are not currently tracked
-- `isConfirmed` // confirmation of the previous output
-- `confirmations` // confirmations of the previous output
-- `unconfirmedInput`
-
-The `/tx/<txid>` endpoint JSON response will not include the following fields on the "vout"
-object.
-- `spentTs`
-
-The `/status?q=getTxOutSetInfo` method has also been removed due to the query being very slow and locking bitcoind.
-
-Plug-in support for Insight API is also no longer available, as well as the endpoints:
-- `/email/retrieve`
-- `/rates/:code`
-
-Caching support has not yet been added in the v0.3 upgrade.
+**Note:** You can use an existing Bitcoin data directory, however `txindex`, `addressindex`, `timestampindex` and `spentindex` needs to be set to true in `bitcoin.conf`, as well as a few other additional fields.
 
 ## Query Rate Limit
 
-To protect the server, insight-lite-api has a built it query rate limiter. It can be configurable in `litecore-node.json` with:
+To protect the server, explorer-api has a built it query rate limiter. It can be configurable in `ltc-node.json` with:
 ``` json
   "servicesConfig": {
-    "insight-lite-api": {
+    "explorer-api": {
       "rateLimiterOptions": {
         "whitelist": ["::ffff:127.0.0.1"]
       }
     }
   }
 ```
-With all the configuration options available: https://github.com/bitpay/insight-lite-api/blob/master/lib/ratelimiter.js#L10-17
+With all the configuration options available: https://github.com/owstack/ltc-explorer-api/blob/master/lib/ratelimiter.js#L10-17
 
 Or disabled entirely with:
 ``` json
   "servicesConfig": {
-    "insight-lite-api": {
+    "explorer-api": {
       "disableRateLimiter": true
     }
   }
   ```
 
-
 ## API HTTP Endpoints
 
 ### Block
 ```
-  /insight-lite-api/block/[:hash]
-  /insight-lite-api/block/00000000a967199a2fad0877433c93df785a8d8ce062e5f9b451cd1397bdbf62
+  /explorer-api/block/[:hash]
+  /explorer-api/block/00000000a967199a2fad0877433c93df785a8d8ce062e5f9b451cd1397bdbf62
 ```
 
 ### Block Index
 Get block hash by height
 ```
-  /insight-lite-api/block-index/[:height]
-  /insight-lite-api/block-index/0
+  /explorer-api/block-index/[:height]
+  /explorer-api/block-index/0
 ```
 This would return:
 ```
@@ -146,8 +75,8 @@ which is the hash of the Genesis block (0 height)
 
 ### Raw Block
 ```
-  /insight-lite-api/rawblock/[:blockHash]
-  /insight-lite-api/rawblock/[:blockHeight]
+  /explorer-api/rawblock/[:blockHash]
+  /explorer-api/rawblock/[:blockHeight]
 ```
 
 This would return:
@@ -161,7 +90,7 @@ This would return:
 
 Get block summaries by date:
 ```
-  /insight-lite-api/blocks?limit=3&blockDate=2016-04-22
+  /explorer-api/blocks?limit=3&blockDate=2016-04-22
 ```
 
 Example response:
@@ -176,7 +105,7 @@ Example response:
       "txlength": 1695,
       "poolInfo": {
         "poolName": "BTCC Pool",
-        "url": "https://pool.btcc.com/"
+        "url": "https://pool.ltcc.com/"
       }
     }
   ],
@@ -195,31 +124,31 @@ Example response:
 
 ### Transaction
 ```
-  /insight-lite-api/tx/[:txid]
-  /insight-lite-api/tx/525de308971eabd941b139f46c7198b5af9479325c2395db7f2fb5ae8562556c
-  /insight-lite-api/rawtx/[:rawid]
-  /insight-lite-api/rawtx/525de308971eabd941b139f46c7198b5af9479325c2395db7f2fb5ae8562556c
+  /explorer-api/tx/[:txid]
+  /explorer-api/tx/525de308971eabd941b139f46c7198b5af9479325c2395db7f2fb5ae8562556c
+  /explorer-api/rawtx/[:rawid]
+  /explorer-api/rawtx/525de308971eabd941b139f46c7198b5af9479325c2395db7f2fb5ae8562556c
 ```
 
 ### Address
 ```
-  /insight-lite-api/addr/[:addr][?noTxList=1][&from=&to=]
-  /insight-lite-api/addr/mmvP3mTe53qxHdPqXEvdu8WdC7GfQ2vmx5?noTxList=1
-  /insight-lite-api/addr/mmvP3mTe53qxHdPqXEvdu8WdC7GfQ2vmx5?from=1000&to=2000
+  /explorer-api/addr/[:addr][?noTxList=1][&from=&to=]
+  /explorer-api/addr/mmvP3mTe53qxHdPqXEvdu8WdC7GfQ2vmx5?noTxList=1
+  /explorer-api/addr/mmvP3mTe53qxHdPqXEvdu8WdC7GfQ2vmx5?from=1000&to=2000
 ```
 
 ### Address Properties
 ```
-  /insight-lite-api/addr/[:addr]/balance
-  /insight-lite-api/addr/[:addr]/totalReceived
-  /insight-lite-api/addr/[:addr]/totalSent
-  /insight-lite-api/addr/[:addr]/unconfirmedBalance
+  /explorer-api/addr/[:addr]/balance
+  /explorer-api/addr/[:addr]/totalReceived
+  /explorer-api/addr/[:addr]/totalSent
+  /explorer-api/addr/[:addr]/unconfirmedBalance
 ```
 The response contains the value in Satoshis.
 
 ### Unspent Outputs
 ```
-  /insight-lite-api/addr/[:addr]/utxo
+  /explorer-api/addr/[:addr]/utxo
 ```
 Sample return:
 ```
@@ -250,13 +179,13 @@ Sample return:
 ### Unspent Outputs for Multiple Addresses
 GET method:
 ```
-  /insight-lite-api/addrs/[:addrs]/utxo
-  /insight-lite-api/addrs/2NF2baYuJAkCKo5onjUKEPdARQkZ6SYyKd5,2NAre8sX2povnjy4aeiHKeEh97Qhn97tB1f/utxo
+  /explorer-api/addrs/[:addrs]/utxo
+  /explorer-api/addrs/2NF2baYuJAkCKo5onjUKEPdARQkZ6SYyKd5,2NAre8sX2povnjy4aeiHKeEh97Qhn97tB1f/utxo
 ```
 
 POST method:
 ```
-  /insight-lite-api/addrs/utxo
+  /explorer-api/addrs/utxo
 ```
 
 POST params:
@@ -266,25 +195,25 @@ addrs: 2NF2baYuJAkCKo5onjUKEPdARQkZ6SYyKd5,2NAre8sX2povnjy4aeiHKeEh97Qhn97tB1f
 
 ### Transactions by Block
 ```
-  /insight-lite-api/txs/?block=HASH
-  /insight-lite-api/txs/?block=00000000fa6cf7367e50ad14eb0ca4737131f256fc4c5841fd3c3f140140e6b6
+  /explorer-api/txs/?block=HASH
+  /explorer-api/txs/?block=00000000fa6cf7367e50ad14eb0ca4737131f256fc4c5841fd3c3f140140e6b6
 ```
 ### Transactions by Address
 ```
-  /insight-lite-api/txs/?address=ADDR
-  /insight-lite-api/txs/?address=mmhmMNfBiZZ37g1tgg2t8DDbNoEdqKVxAL
+  /explorer-api/txs/?address=ADDR
+  /explorer-api/txs/?address=mmhmMNfBiZZ37g1tgg2t8DDbNoEdqKVxAL
 ```
 
 ### Transactions for Multiple Addresses
 GET method:
 ```
-  /insight-lite-api/addrs/[:addrs]/txs[?from=&to=]
-  /insight-lite-api/addrs/2NF2baYuJAkCKo5onjUKEPdARQkZ6SYyKd5,2NAre8sX2povnjy4aeiHKeEh97Qhn97tB1f/txs?from=0&to=20
+  /explorer-api/addrs/[:addrs]/txs[?from=&to=]
+  /explorer-api/addrs/2NF2baYuJAkCKo5onjUKEPdARQkZ6SYyKd5,2NAre8sX2povnjy4aeiHKeEh97Qhn97tB1f/txs?from=0&to=20
 ```
 
 POST method:
 ```
-  /insight-lite-api/addrs/txs
+  /explorer-api/addrs/txs
 ```
 
 POST params:
@@ -330,7 +259,7 @@ Note: if pagination params are not specified, the result is an array of transact
 ### Transaction Broadcasting
 POST method:
 ```
-  /insight-lite-api/tx/send
+  /explorer-api/tx/send
 ```
 POST params:
 ```
@@ -356,17 +285,17 @@ POST response:
 
 ### Historic Blockchain Data Sync Status
 ```
-  /insight-lite-api/sync
+  /explorer-api/sync
 ```
 
 ### Live Network P2P Data Sync Status
 ```
-  /insight-lite-api/peer
+  /explorer-api/peer
 ```
 
 ### Status of the Bitcoin Network
 ```
-  /insight-lite-api/status?q=xxx
+  /explorer-api/status?q=xxx
 ```
 
 Where "xxx" can be:
@@ -379,14 +308,14 @@ Where "xxx" can be:
 
 ### Utility Methods
 ```
-  /insight-lite-api/utils/estimatefee[?nbBlocks=2]
+  /explorer-api/utils/estimatefee[?nbBlocks=2]
 ```
 
 
 ## Web Socket API
 The web socket API is served using [socket.io](http://socket.io).
 
-The following are the events published by insight:
+The following are the events published by explorer:
 
 `tx`: new transaction received from network. This event is published in the 'inv' room. Data will be a app/models/Transaction object.
 Sample output:
@@ -429,18 +358,18 @@ Sample output:
 
 ### Example Usage
 
-The following html page connects to the socket.io insight API and listens for new transactions.
+The following html page connects to the socket.io explorer API and listens for new transactions.
 
 html
 ```
 <html>
 <body>
-  <script src="http://<insight-server>:<port>/socket.io/socket.io.js"></script>
+  <script src="http://<explorer-server>:<port>/socket.io/socket.io.js"></script>
   <script>
     eventToListenTo = 'tx'
     room = 'inv'
 
-    var socket = io("http://<insight-server>:<port>/");
+    var socket = io("http://<explorer-server>:<port>/");
     socket.on('connect', function() {
       // Join the room.
       socket.emit('subscribe', room);

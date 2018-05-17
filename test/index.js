@@ -2,14 +2,14 @@
 
 var should = require('should');
 var sinon = require('sinon');
-var InsightAPI = require('../lib/index');
+var ExplorerAPI = require('../ltc-node/index');
 
 describe('Index', function() {
   describe('@constructor', function() {
     it('will set rate limiter options', function() {
       var options = {};
       var node = {};
-      var index = new InsightAPI({
+      var index = new ExplorerAPI({
         rateLimiterOptions: options,
         node: node
       });
@@ -17,7 +17,7 @@ describe('Index', function() {
     });
     it('will set disable rate limiter option', function() {
       var node = {};
-      var index = new InsightAPI({
+      var index = new ExplorerAPI({
         disableRateLimiter: true,
         node: node
       });
@@ -30,7 +30,7 @@ describe('Index', function() {
         whitelist: ['127.0.0.1']
       };
       var node = {};
-      var index = new InsightAPI({
+      var index = new ExplorerAPI({
         rateLimiterOptions: options,
         node: node
       });
@@ -43,7 +43,7 @@ describe('Index', function() {
       var node = {
         log: sinon.stub()
       };
-      var index = new InsightAPI({
+      var index = new ExplorerAPI({
         enableCache: true,
         node: node
       });
@@ -63,7 +63,7 @@ describe('Index', function() {
       var node = {
         log: sinon.stub()
       };
-      var index = new InsightAPI({
+      var index = new ExplorerAPI({
         enableCache: false,
         node: node
       });
@@ -83,7 +83,7 @@ describe('Index', function() {
       var node = {
         log: sinon.stub()
       };
-      var index = new InsightAPI({
+      var index = new ExplorerAPI({
         enableCache: true,
         cacheShortSeconds: 35,
         node: node
@@ -104,7 +104,7 @@ describe('Index', function() {
       var node = {
         log: sinon.stub()
       };
-      var index = new InsightAPI({
+      var index = new ExplorerAPI({
         enableCache: true,
         node: node
       });
@@ -126,7 +126,7 @@ describe('Index', function() {
       var node = {
         log: sinon.stub()
       };
-      var index = new InsightAPI({
+      var index = new ExplorerAPI({
         enableCache: true,
         cacheLongSeconds: 86400000,
         node: node
@@ -147,7 +147,7 @@ describe('Index', function() {
       var node = {
         log: sinon.stub()
       };
-      var index = new InsightAPI({
+      var index = new ExplorerAPI({
         enableCache: true,
         node: node
       });
@@ -167,7 +167,7 @@ describe('Index', function() {
   describe('#setupRoutes', function() {
     it('will use rate limiter by default', function() {
       var node = {};
-      var index = new InsightAPI({
+      var index = new ExplorerAPI({
         node: node
       });
       var middlewareFunc = sinon.stub();
@@ -190,7 +190,7 @@ describe('Index', function() {
     });
     it('will NOT use rate limiter if disabled', function() {
       var node = {};
-      var index = new InsightAPI({
+      var index = new ExplorerAPI({
         node: node,
         disableRateLimiter: true
       });
