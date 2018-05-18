@@ -1,7 +1,7 @@
 {
   "name": "@owstack/ltc-explorer-api",
   "description": "A Litecoin blockchain REST and web socket API service",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "repository": "git://github.com/owstack/ltc-explorer-api.git",
   "bugs": {
     "url": "https://github.com/owstack/ltc-explorer-api/issues"
@@ -26,8 +26,8 @@
   "main": "ltc-node",
   "ltcNode": "ltc-node",
   "dependencies": {
-    "@owstack/ltc-lib": "0.0.4",
-    "@owstack/ltc-message": "^0.0.4",
+    "@owstack/ltc-lib": "0.0.5",
+    "@owstack/ltc-message": "^0.0.5",
     "async": "*",
     "body-parser": "^1.13.3",
     "compression": "^1.6.1",
